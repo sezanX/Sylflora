@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="bn" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-lang-key="title">Sylflora | Luxury Perfume Shop</title>
+    <!-- Chosen Palette: Sophisticated Emerald (Deep Emerald Green, Gold, Off-White) -->
+    <!-- Application Structure Plan: A single-page, multi-section layout was chosen for a fluid, uninterrupted user experience ideal for a product showcase. The structure includes a header with navigation, a cart, and a language switcher, a hero section, a new 'Test Kit' builder section, a core interactive 'Shop' section, an 'About' section, and a 'Contact' section. Clicking a product opens a detailed modal, while a new Test Kit builder modal allows for sample selection. A slide-out cart is added for order review. A new checkout modal handles order finalization with delivery options. This prioritizes both standard purchase and sample exploration. -->
+    <!-- Visualization & Content Choices: The main data is presented in an interactive product grid (HTML/Tailwind/JS). A new interactive Test Kit builder (modal with JS logic) fulfills the user's request for a minimum 5-sample order with no maximum. The '7ml' option is removed from individual product modals. A horizontal bar chart (Chart.js) shows the perfume distribution by category. A new cart feature (JS state management and rendering) is added to handle the new purchasing logic. An "Instant Buy" button is added to product modals, leading to a new checkout modal that includes delivery charge calculation and payment instructions. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #F5F5F5;
+            color: #023020;
+        }
+        .font-english { font-family: 'Poppins', sans-serif; }
+        .font-bangla { font-family: 'Hind Siliguri', sans-serif; }
+        .sylflora-gold { color: #FFD700; }
+        .bg-sylflora-gold { background-color: #FFD700; }
+        .border-sylflora-gold { border-color: #FFD700; }
+        .bg-sylflora-green { background-color: #023020; }
+        .text-sylflora-green { color: #023020; }
+        .border-sylflora-green { border-color: #023020; }
+        .text-sylflora-offwhite { color: #F5F5F5; }
+        .modal-bg {
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .cart-slide-in {
+            transform: translateX(0%);
+        }
+        .cart-slide-out {
+            transform: translateX(100%);
+        }
+    </style>
+</head>
+<body class="font-bangla">
+
+    <header class="bg-sylflora-green text-sylflora-offwhite sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="text-2xl font-bold">
+                    <a href="#" class="flex items-center space-x-2">
+                        <span>SYLFLORA</span>
+                    </a>
+                </div>
+                <nav class="hidden md:flex items-center space-x-8">
+                    <a href="#shop" class="hover:sylflora-gold transition duration-300" data-lang-key="nav_shop">Shop</a>
+                    <a href="#about" class="hover:sylflora-gold transition duration-300" data-lang-key="nav_about">About</a>
+                    <a href="#contact" class="hover:sylflora-gold transition duration-300" data-lang-key="nav_contact">Contact</a>
+                </nav>
+                <div class="flex items-center space-x-4">
+                    <button id="cart-button" class="relative p-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        <span id="cart-badge" class="absolute top-0 right-0 bg-sylflora-gold text-sylflora-green text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
+                    </button>
+                    <button id="lang-switcher" class="border border-sylflora-gold text-sylflora-gold font-semibold py-2 px-4 rounded-full hover:bg-sylflora-gold hover:text-sylflora-green transition duration-300">
+                        English
+                    </button>
+                    <button id="mobile-menu-button" class="md:hidden p-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden bg-sylflora-green">
+            <a href="#shop" class="block text-center py-4 text-lg hover:bg-sylflora-gold hover:text-sylflora-green transition duration-300" data-lang-key="nav_shop_mobile">Shop</a>
+            <a href="#about" class="block text-center py-4 text-lg hover:bg-sylflora-gold hover:text-sylflora-green transition duration-300" data-lang-key="nav_about_mobile">About</a>
+            <a href="#contact" class="block text-center py-4 text-lg hover:bg-sylflora-gold hover:text-sylflora-green transition duration-300" data-lang-key="nav_contact_mobile">Contact</a>
+        </div>
+    </header>
+
+    <main>
+        <section id="hero" class="h-[60vh] md:h-[80vh] bg-cover bg-center bg-no-repeat flex items-center justify-center text-center text-white" style="background-image: url('https://placehold.co/1920x1080/023020/F5F5F5?text=Sylflora');">
+             <div class="bg-black bg-opacity-40 p-8 rounded-lg">
+                <h1 class="text-4xl md:text-6xl font-bold uppercase tracking-widest font-english">SYLFLORA</h1>
+                <p class="text-lg md:text-2xl mt-4 font-light" data-lang-key="hero_subtitle">Luxury Perfume Shop</p>
+            </div>
+        </section>
+
+        <section id="test-kit-promo" class="bg-white py-16 md:py-24 text-center">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl md:text-4xl font-bold text-sylflora-green" data-lang-key="kit_title">Create Your Own 7ml Test Kit</h2>
+                <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto" data-lang-key="kit_subtitle">Can't decide on a full bottle? Select any 5 of our exquisite perfumes to create your personalized 7ml sample kit. It's the perfect way to discover your new favorite scent.</p>
+                <button id="open-kit-builder" class="mt-8 bg-sylflora-gold text-sylflora-green font-bold py-4 px-8 rounded-full text-lg hover:opacity-90 transition duration-300" data-lang-key="kit_button">Create Your Kit</button>
+            </div>
+        </section>
+
+        <section id="shop" class="py-16 md:py-24">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-sylflora-green" data-lang-key="shop_title">Our Collection</h2>
+                    <p class="mt-4 text-lg text-gray-600" data-lang-key="shop_subtitle">Discover your signature scent from our curated collection of luxury perfumes.</p>
+                </div>
+
+                <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                    <div id="filter-buttons" class="flex flex-wrap justify-center gap-2">
+                        <button class="filter-btn bg-sylflora-green text-sylflora-offwhite py-2 px-5 rounded-full" data-filter="all" data-lang-key="filter_all">All</button>
+                        <button class="filter-btn py-2 px-5 rounded-full border border-sylflora-green" data-filter="Male" data-lang-key="filter_men">For Men</button>
+                        <button class="filter-btn py-2 px-5 rounded-full border border-sylflora-green" data-filter="Female" data-lang-key="filter_women">For Women</button>
+                        <button class="filter-btn py-2 px-5 rounded-full border border-sylflora-green" data-filter="Unisex" data-lang-key="filter_unisex">Unisex</button>
+                    </div>
+                    <div>
+                        <select id="sort-select" class="border border-sylflora-green rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-sylflora-gold">
+                            <option value="default" data-lang-key="sort_default">Sort By</option>
+                            <option value="price-asc" data-lang-key="sort_price_asc">Price: Low to High</option>
+                            <option value="price-desc" data-lang-key="sort_price_desc">Price: High to Low</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                </div>
+            </div>
+        </section>
+        
+        <section id="about" class="bg-white py-16 md:py-24">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-sylflora-green" data-lang-key="about_title">The Essence of Sylflora</h2>
+                     <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto" data-lang-key="about_intro">This section provides insight into our brand and the variety within our collection. Explore the story behind our fragrances and see a visual breakdown of our perfume offerings, helping you understand the diversity and focus of our scents.</p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div class="prose max-w-none text-gray-700">
+                        <p data-lang-key="about_p1">Welcome to Sylflora, where the art of perfumery meets the essence of nature and luxury. Our mission is to create unique, high-quality fragrances that tell a story and evoke powerful emotions. Each bottle is a masterpiece, crafted with passion and precision.</p>
+                        <p data-lang-key="about_p2">We believe that a scent is more than just a fragrance; it's a personal signature. That's why we source the finest ingredients from around the world to create our exclusive collection, offering a scent for every personality and occasion.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-semibold text-center mb-4 text-sylflora-green" data-lang-key="chart_title">Our Collection by Category</h3>
+                        <div class="chart-container">
+                             <canvas id="genderChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="py-16 md:py-24">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                 <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-sylflora-green" data-lang-key="contact_title">Get In Touch</h2>
+                    <p class="mt-4 text-lg text-gray-600" data-lang-key="contact_subtitle">We would love to hear from you. For inquiries, support, or feedback, please reach out.</p>
+                </div>
+                <div class="max-w-xl mx-auto">
+                    <form id="facebook-message-form" class="space-y-6">
+                        <div>
+                            <label for="contact-name" class="sr-only" data-lang-key="form_name">Name</label>
+                            <input type="text" id="contact-name" placeholder="Name" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-sylflora-gold" data-lang-placeholder-key="form_name_placeholder">
+                        </div>
+                         <div>
+                            <label for="contact-message" class="sr-only" data-lang-key="form_message">Message</label>
+                            <textarea id="contact-message" rows="5" placeholder="Your Message" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-sylflora-gold" data-lang-placeholder-key="form_message_placeholder" required></textarea>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300 flex items-center justify-center gap-2" data-lang-key="contact_facebook">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.04C6.5 2.04 2 6.53 2 12.06C2 17.06 5.66 21.21 10.44 21.96V14.96H7.9V12.06H10.44V9.85C10.44 7.32 11.93 5.96 14.22 5.96C15.31 5.96 16.45 6.15 16.45 6.15V8.62H15.19C13.95 8.62 13.56 9.39 13.56 10.18V12.06H16.34L15.89 14.96H13.56V21.96A10 10 0 0 0 22 12.06C22 6.53 17.5 2.04 12 2.04Z"></path></svg>
+                                <span>Message us on Facebook</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <footer class="bg-sylflora-green text-sylflora-offwhite py-8">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p>&copy; 2025 Sylflora. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Product Modal -->
+    <div id="product-modal" class="fixed inset-0 z-50 modal-bg items-center justify-center hidden">
+        <div class="bg-white rounded-lg shadow-2xl w-11/12 md:w-3/4 lg:w-2/3 max-h-[90vh] overflow-y-auto relative">
+            <button id="close-product-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div id="product-modal-content" class="grid md:grid-cols-2 gap-8 p-6 md:p-10">
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Kit Builder Modal -->
+    <div id="kit-builder-modal" class="fixed inset-0 z-50 modal-bg items-center justify-center hidden">
+        <div class="bg-white rounded-lg shadow-2xl w-11/12 md:w-3/4 lg:w-2/3 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 class="text-2xl font-bold text-sylflora-green" data-lang-key="kit_modal_title">Build Your Test Kit</h2>
+                <button id="close-kit-modal" class="text-gray-500 hover:text-gray-800">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div id="kit-perfume-list" class="p-6 overflow-y-auto">
+                <!-- Perfume list will be injected here -->
+            </div>
+            <div class="p-6 border-t mt-auto bg-gray-50">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-lg font-semibold" data-lang-key="kit_selection_counter">Select at least 5 perfumes</p>
+                        <p id="kit-counter" class="text-2xl font-bold text-sylflora-green">0 selected</p>
+                    </div>
+                    <button id="add-kit-to-cart-btn" class="bg-sylflora-gold text-sylflora-green font-bold py-3 px-8 rounded-full text-lg hover:opacity-90 transition duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled data-lang-key="kit_add_to_cart">Add Kit to Cart</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shopping Cart Modal -->
+    <div id="cart-modal" class="fixed inset-0 z-50 overflow-hidden hidden">
+        <div id="cart-bg" class="absolute inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+        <div id="cart-panel" class="absolute inset-y-0 right-0 max-w-full flex transition-transform duration-300 ease-in-out cart-slide-out">
+            <div class="w-screen max-w-md">
+                <div class="h-full flex flex-col bg-white shadow-xl">
+                    <div class="flex-1 overflow-y-auto">
+                        <div class="p-6">
+                            <div class="flex items-start justify-between">
+                                <h2 class="text-2xl font-bold text-sylflora-green" data-lang-key="cart_title">Shopping Cart</h2>
+                                <button id="close-cart-btn" class="text-gray-500 hover:text-gray-800">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="cart-items" class="border-t border-gray-200 px-6 py-4">
+                            <!-- Cart items will be injected here -->
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-200 py-6 px-4 sm:px-6">
+                        <div class="flex justify-between text-lg font-medium text-gray-900">
+                            <p data-lang-key="cart_subtotal">Subtotal</p>
+                            <p id="cart-subtotal">BDT 0</p>
+                        </div>
+                        <div class="mt-6 space-y-3">
+                            <button id="checkout-btn" class="w-full flex items-center justify-center rounded-md border border-transparent bg-sylflora-green px-6 py-3 text-base font-medium text-white shadow-sm hover:opacity-90" data-lang-key="cart_checkout">Checkout</button>
+                            <button id="clear-cart-btn" class="w-full flex items-center justify-center rounded-md border border-red-500 px-6 py-3 text-base font-medium text-red-500 shadow-sm hover:bg-red-500 hover:text-white" data-lang-key="cart_clear">Clear Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Checkout Modal -->
+    <div id="checkout-modal" class="fixed inset-0 z-50 modal-bg items-center justify-center hidden">
+        <div class="bg-white rounded-lg shadow-2xl w-11/12 md:w-3/4 lg:w-1/2 max-h-[90vh] overflow-y-auto relative">
+            <button id="close-checkout-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div class="p-6 md:p-10">
+                <h2 class="text-2xl md:text-3xl font-bold text-sylflora-green mb-6" data-lang-key="checkout_title">Confirm Order</h2>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Order Summary -->
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4" data-lang-key="checkout_summary_title">Order Summary</h3>
+                        <div id="checkout-item-list" class="space-y-3 max-h-48 overflow-y-auto pr-2">
+                            <!-- Checkout items will be injected here -->
+                        </div>
+                        <div class="mt-4 border-t pt-4 space-y-2">
+                            <div class="flex justify-between">
+                                <span data-lang-key="checkout_subtotal">Subtotal:</span>
+                                <span id="checkout-subtotal-amount"></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span data-lang-key="checkout_delivery">Delivery Charge:</span>
+                                <span id="checkout-delivery-amount"></span>
+                            </div>
+                            <div class="flex justify-between font-bold text-lg">
+                                <span data-lang-key="checkout_total">Total:</span>
+                                <span id="checkout-total-amount"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customer Details & Payment -->
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4" data-lang-key="checkout_details_title">Your Details</h3>
+                        <form id="checkout-form" class="space-y-4">
+                            <input type="text" required class="w-full p-3 rounded-lg border border-gray-300" data-lang-placeholder-key="checkout_form_name" placeholder="আপনার নাম">
+                            <input type="tel" required class="w-full p-3 rounded-lg border border-gray-300" data-lang-placeholder-key="checkout_form_phone" placeholder="আপনার মোবাইল নম্বর">
+                            <textarea required rows="3" class="w-full p-3 rounded-lg border border-gray-300" data-lang-placeholder-key="checkout_form_address" placeholder="আপনার ঠিকানা"></textarea>
+                            
+                            <div class="space-y-2">
+                                <label class="font-semibold" data-lang-key="checkout_delivery_location">Delivery Location</label>
+                                <div class="flex gap-4">
+                                    <label class="flex items-center"><input type="radio" name="delivery_location" value="inside" class="mr-2" checked> <span data-lang-key="checkout_inside_dhaka">Inside Dhaka</span></label>
+                                    <label class="flex items-center"><input type="radio" name="delivery_location" value="outside" class="mr-2"> <span data-lang-key="checkout_outside_dhaka">Outside Dhaka</span></label>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 border-t pt-4">
+                                <h4 class="font-semibold mb-2" data-lang-key="checkout_payment_method">Payment Method</h4>
+                                <div class="p-4 bg-gray-100 rounded-lg">
+                                    <p class="font-bold" data-lang-key="checkout_cod">Cash on Delivery</p>
+                                    <p class="text-sm text-gray-600" data-lang-key="checkout_delivery_time">Delivery Time: 1-3 days in Dhaka, 3-5 days outside Dhaka.</p>
+                                </div>
+                                <div class="p-4 bg-blue-50 rounded-lg mt-3">
+                                    <p class="font-bold" data-lang-key="checkout_online_payment">For Online Payment</p>
+                                    <p class="text-sm text-gray-600" data-lang-key="checkout_online_instructions">Please contact us on our <a href="https://www.facebook.com/sylflora.official" target="_blank" class="text-blue-600 font-bold">Facebook Page</a>.</p>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="w-full mt-4 bg-sylflora-green text-sylflora-offwhite font-bold py-4 rounded-full text-lg hover:opacity-90 transition duration-300" data-lang-key="checkout_confirm_order">Confirm Order (COD)</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add to Cart Confirmation Modal -->
+    <div id="add-to-cart-modal" class="fixed inset-0 z-50 modal-bg items-center justify-center hidden">
+        <div class="bg-white rounded-lg shadow-2xl w-11/12 md:w-1/3 text-center p-8">
+            <div class="flex justify-center mb-4">
+                <svg class="w-16 h-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <h2 class="text-2xl font-bold text-sylflora-green mb-4" data-lang-key="add_success_title">Successfully Added!</h2>
+            <p class="mb-6" data-lang-key="add_success_message">The product has been added to your shopping cart.</p>
+            <div class="flex justify-center gap-4">
+                <button id="continue-shopping-btn" class="border border-sylflora-green text-sylflora-green font-bold py-3 px-6 rounded-full" data-lang-key="continue_shopping">Continue Shopping</button>
+                <button id="go-to-cart-btn" class="bg-sylflora-green text-white font-bold py-3 px-6 rounded-full" data-lang-key="go_to_cart">Go to Cart</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Floating Messenger Button -->
+    <a href="https://www.facebook.com/messages/t/sylflora.official" target="_blank" class="fixed bottom-6 right-6 z-50 bg-blue-600 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 transition-transform transform hover:scale-110">
+        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12.01 2C6.49 2 2 6.49 2 12.01s4.49 10.01 10.01 10.01c1.89 0 3.68-.53 5.16-1.48l3.61 2.16c.19.11.42.11.61 0 .19-.11.29-.32.29-.54V16.7c1.42-1.59 2.33-3.69 2.33-6.01C24.01 6.49 19.53 2 12.01 2zM8.51 13.51c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm3.5 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm3.5 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+    </a>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const productData = [
+                { id: 1, name: "Pakistan GUL E LALA", desc: "A classic and beloved fragrance, especially for elders.", gender: "Male", prices: { "7ml": 90, "30ml": 310, "100ml": 730 }, longevity: "১২-১৮ ঘণ্টা", scentType: "ক্লাসিক ও ঐতিহ্যবাহী", notes: { top: "গোলাপ, জাফরান", middle: "عود, জেসমিন", base: "আম্বার, কস্তুরী" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=GUL+1", "https://placehold.co/600x600/023020/F5F5F5?text=GUL+2", "https://placehold.co/600x600/023020/F5F5F5?text=GUL+3"] },
+                { id: 2, name: "SRK", desc: "A very popular perfume scent.", gender: "Male", prices: { "7ml": 90, "30ml": 350, "100ml": 850 }, longevity: "১০-১২ ঘণ্টা", scentType: "শক্তিশালী ও আকর্ষণীয়", notes: { top: "লেবু, বারগামট", middle: "ল্যাভেন্ডার, মশলা", base: "চন্দন, ভেটিভার" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=SRK+1", "https://placehold.co/600x600/023020/F5F5F5?text=SRK+2", "https://placehold.co/600x600/023020/F5F5F5?text=SRK+3"] },
+                { id: 3, name: "BLU DE CHANELS", desc: "A very popular and well-known perfume.", gender: "Male", prices: { "7ml": 90, "30ml": 370, "100ml": 899 }, longevity: "৮-১০ ঘণ্টা", scentType: "ফ্রেশ ও আধুনিক", notes: { top: "সাইট্রাস, মিন্ট", middle: "আদা, জেসমিন", base: "সিডারউড, প্যাচুলি" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=BLU+1", "https://placehold.co/600x600/023020/F5F5F5?text=BLU+2", "https://placehold.co/600x600/023020/F5F5F5?text=BLU+3"] },
+                { id: 4, name: "Green Apple", desc: "An attractive apple-type scent.", gender: "Unisex", prices: { "7ml": 90, "30ml": 320, "100ml": 760 }, longevity: "৬-৮ ঘণ্টা", scentType: "মিষ্টি ও ফলভিত্তিক", notes: { top: "সবুজ আপেল", middle: "ফ্রুট নোটস", base: "কস্তুরী" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Apple+1", "https://placehold.co/600x600/023020/F5F5F5?text=Apple+2", "https://placehold.co/600x600/023020/F5F5F5?text=Apple+3"] },
+                { id: 5, name: "Smoking", desc: "A floral and lavender fragrance.", gender: "Male", prices: { "7ml": 90, "30ml": 350, "100ml": 850 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 6, name: "BLUE LADY", desc: "A very common perfume for women.", gender: "Female", prices: { "7ml": 90, "30ml": 320, "100ml": 750 }, longevity: "৮-১২ ঘণ্টা", scentType: "ফ্লোরাল ও মিষ্টি", notes: { top: "টিউবাররোজ, জেসমিন", middle: "ফ্রুট নোটস", base: "ভ্যানিলা, স্যান্ডালউড" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=LADY+1", "https://placehold.co/600x600/023020/F5F5F5?text=LADY+2", "https://placehold.co/600x600/023020/F5F5F5?text=LADY+3"] },
+                { id: 7, name: "ONE MILLION", desc: "A very common international perfume.", gender: "Unisex", prices: { "7ml": 90, "30ml": 400, "100ml": 1000 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 8, name: "SHAY OUD", desc: "A very common Oud-type scent.", gender: "Male", prices: { "7ml": 90, "30ml": 370, "100ml": 920 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 9, name: "MAGNET", desc: "A common sweet (strong) perfume.", gender: "Unisex", prices: { "7ml": 90, "30ml": 310, "100ml": 730 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 10, name: "MOON DROPS", desc: "A very attractive perfume for women.", gender: "Female", prices: { "7ml": 90, "30ml": 320, "100ml": 750 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 11, name: "ACQUA DI GIO", desc: "A very common perfume for men.", gender: "Male", prices: { "7ml": 90, "30ml": 450, "100ml": 1200 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 12, name: "ARMANY", desc: "A very common perfume for men.", gender: "Male", prices: { "7ml": 90, "30ml": 350, "100ml": 850 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 13, name: "FROOTI (Perfume Grade)", desc: "A very attractive sweet fruit scent.", gender: "Unisex", prices: { "7ml": 90, "30ml": 500, "100ml": 1300 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 14, name: "DE LEMON", desc: "An attractive lemon scent.", gender: "Unisex", prices: { "7ml": 90, "30ml": 300, "100ml": 690 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 15, name: "DE ORANGE", desc: "An attractive orange scent.", gender: "Unisex", prices: { "7ml": 90, "30ml": 290, "100ml": 680 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 16, name: "X CHILL BLUE", desc: "A very attractive perfume scent.", gender: "Male", prices: { "7ml": 90, "30ml": 340, "100ml": 799 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 17, name: "GOOD GIRL 3.4", desc: "A very common perfume for women.", gender: "Female", prices: { "7ml": 90, "30ml": 380, "100ml": 950 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 18, name: "WATER MELON", desc: "A watermelon or Center Shock chewing gum flavor.", gender: "Unisex", prices: { "7ml": 90, "30ml": 399, "100ml": 1000 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 19, name: "MIX BERRY", desc: "A berry fruit flavor.", gender: "Unisex", prices: { "7ml": 90, "30ml": 300, "100ml": 699 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 20, name: "CANDY", desc: "A vanilla and chocolate type scent.", gender: "Unisex", prices: { "7ml": 90, "30ml": 450, "100ml": 1140 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 21, name: "ARABIAN JASMINE", desc: "A jasmine flower scent.", gender: "Unisex", prices: { "7ml": 90, "30ml": 290, "100ml": 670 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 22, name: "AXXX BOSS", desc: "A very strong, sweet scent.", gender: "Unisex", prices: { "7ml": 90, "30ml": 300, "100ml": 699 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 23, name: "BLACK FOGG", desc: "A Fogg perfume scent.", gender: "Unisex", prices: { "7ml": 90, "30ml": 350, "100ml": 850 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 24, name: "SEGMENT OPENZ", desc: "A special, unique men's flavor.", gender: "Male", prices: { "7ml": 90, "30ml": 370, "100ml": 900 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 25, name: "BISCUIT PERFUME 99", desc: "A biscuit-type scent.", gender: "Unisex", prices: { "7ml": 90, "30ml": 390, "100ml": 950 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 26, name: "Wild Stone WS", desc: "A unique perfume flavor.", gender: "Unisex", prices: { "7ml": 90, "30ml": 340, "100ml": 800 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 27, name: "PERFUME BMW SRJ", desc: "A unique perfume type.", gender: "Unisex", prices: { "7ml": 90, "30ml": 320, "100ml": 750 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 28, name: "JOPI PERFUME 1", desc: "A very common perfume.", gender: "Unisex", prices: { "7ml": 90, "30ml": 350, "100ml": 850 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 29, name: "INTERNAL LOVE", desc: "A very common perfume.", gender: "Unisex", prices: { "7ml": 90, "30ml": 360, "100ml": 870 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 30, name: "COMPOUND ROYAL MIRAGE", desc: "A very common perfume type.", gender: "Unisex", prices: { "7ml": 90, "30ml": 330, "100ml": 780 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 31, name: "THE WHITE MUSK", desc: "A common perfume.", gender: "Unisex", prices: { "7ml": 90, "30ml": 330, "100ml": 780 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 32, name: "FORMULA ONE MAN", desc: "A common perfume.", gender: "Unisex", prices: { "7ml": 90, "30ml": 320, "100ml": 740 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 33, name: "CALVIN 1", desc: "A common perfume.", gender: "Unisex", prices: { "7ml": 90, "30ml": 350, "100ml": 850 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 34, name: "CHOCOLATE", desc: "A chocolate-type perfume.", gender: "Unisex", prices: { "7ml": 90, "30ml": 270, "100ml": 600 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 35, name: "COOL WATER", desc: "A cool, fresh perfume.", gender: "Unisex", prices: { "7ml": 90, "30ml": 330, "100ml": 780 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 36, name: "OLD POISON", desc: "A very strong scented perfume.", gender: "Unisex", prices: { "7ml": 90, "30ml": 300, "100ml": 699 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 37, name: "SCARLET", desc: "A slightly uncommon type.", gender: "Unisex", prices: { "7ml": 90, "30ml": 330, "100ml": 800 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 38, name: "BLUE MAN", desc: "A unique perfume for personal use.", gender: "Male", prices: { "7ml": 90, "30ml": 350, "100ml": 850 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 39, name: "CRX LUX 99.9", desc: "A soap-flavor type.", gender: "Unisex", prices: { "7ml": 90, "30ml": 240, "100ml": 499 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 40, name: "LAVENDER YDY", desc: "A lavender flower scent.", gender: "Unisex", prices: { "7ml": 90, "30ml": 350, "100ml": 830 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 41, name: "VAMPIRE BLOOD FRANCE", desc: "A strong and beautiful flavor.", gender: "Unisex", prices: { "7ml": 90, "30ml": 340, "100ml": 799 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 42, name: "POLO RED EDITION", desc: "A very common perfume.", gender: "Unisex", prices: { "7ml": 90, "30ml": 400, "100ml": 1000 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 43, name: "PINK PRINSESS", desc: "Best for women.", gender: "Female", prices: { "7ml": 90, "30ml": 300, "100ml": 700 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 44, name: "KASTURI", desc: "Deer musk, a very popular perfume.", gender: "Unisex", prices: { "7ml": 90, "30ml": 320, "100ml": 750 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 45, name: "DIO SAUVAGE", desc: "A popular perfume.", gender: "Male", prices: { "7ml": 90, "30ml": 470, "100ml": 1200 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 46, name: "VANILLA Scent", desc: "A vanilla perfume.", gender: "Unisex", prices: { "7ml": 90, "30ml": 350, "100ml": 840 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 47, name: "BLUE WATER 57.1", desc: "A common perfume.", gender: "Unisex", prices: { "7ml": 90, "30ml": 350, "100ml": 850 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 48, name: "TAMDAO", desc: "A common perfume.", gender: "Male", prices: { "7ml": 90, "30ml": 440, "100ml": 1100 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 49, name: "DUNHIL FRANCE", desc: "A common perfume.", gender: "Unisex", prices: { "7ml": 90, "30ml": 325, "100ml": 750 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 50, name: "AXE TWISTER", desc: "A strong type of flavor.", gender: "Unisex", prices: { "7ml": 90, "30ml": 330, "100ml": 800 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 51, name: "Dark Angel Singapore", desc: "A very strong flavor for women.", gender: "Female", prices: { "7ml": 90, "30ml": 380, "100ml": 950 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 52, name: "D&G MIRACLE", desc: "A common perfume.", gender: "Male", prices: { "7ml": 90, "30ml": 330, "100ml": 799 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 53, name: "BLACK TEASE Original", desc: "A unique type of perfume.", gender: "Unisex", prices: { "7ml": 90, "30ml": 330, "100ml": 800 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 54, name: "BLACK OPIUMS", desc: "A very common perfume.", gender: "Female", prices: { "7ml": 90, "30ml": 390, "100ml": 950 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 55, name: "GUCI Flora", desc: "A very common perfume for women.", gender: "Female", prices: { "7ml": 90, "30ml": 390, "100ml": 950 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 56, name: "NIVEA", desc: "A very common men's perfume.", gender: "Male", prices: { "7ml": 90, "30ml": 330, "100ml": 790 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 57, name: "VERSACE EROS", desc: "A common perfume.", gender: "Male", prices: { "7ml": 90, "30ml": 370, "100ml": 920 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 58, name: "D LOVE 37.1", desc: "A common perfume.", gender: "Unisex", prices: { "7ml": 90, "30ml": 330, "100ml": 780 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 59, name: "CREED AVENTUS", desc: "A famous perfume.", gender: "Male", prices: { "7ml": 90, "30ml": 470, "100ml": 1200 }, longevity: "১২-২৪ ঘণ্টা", scentType: "শক্তিশালী ও অভিজাত", notes: { top: "আনারস, বারগামট", middle: "বার্চ, জেসমিন", base: "ওকমস, আম্বারগ্রিস" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Aventus+1", "https://placehold.co/600x600/023020/F5F5F5?text=Aventus+2", "https://placehold.co/600x600/023020/F5F5F5?text=Aventus+3"] },
+                { id: 60, name: "Tobacco 2X", desc: "An Oud-type perfume.", gender: "Male", prices: { "7ml": 90, "30ml": 340, "100ml": 810 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 61, name: "AZARO MOST WANTED", desc: "A famous perfume.", gender: "Male", prices: { "7ml": 90, "30ml": 360, "100ml": 890 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 62, name: "PRADA CARBON", desc: "A very common perfume, light scent.", gender: "Male", prices: { "7ml": 90, "30ml": "coming soon", "100ml": 820 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+                { id: 63, name: "AL FARIES", desc: "A common or Oud-type perfume.", gender: "Male", prices: { "7ml": 90, "30ml": "coming soon", "100ml": 770 }, longevity: "৮-১২ ঘণ্টা", scentType: "কড়া টাইপের ফ্লেভার", notes: { top: "ডিফল্ট", middle: "ডিফল্ট", base: "ডিফল্ট" }, images: ["https://placehold.co/600x600/023020/F5F5F5?text=Perfume+1", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+2", "https://placehold.co/600x600/023020/F5F5F5?text=Perfume+3"] },
+            ];
+
+            const langData = {
+                en: {
+                    title: "Sylflora | Luxury Perfume Shop",
+                    nav_shop: "Shop", nav_about: "About", nav_contact: "Contact",
+                    nav_shop_mobile: "Shop", nav_about_mobile: "About", nav_contact_mobile: "Contact",
+                    hero_subtitle: "Luxury Perfume Shop",
+                    kit_title: "Create Your Own 7ml Test Kit",
+                    kit_subtitle: "Can't decide on a full bottle? Select a minimum of 5 perfumes to create your personalized 7ml sample kit. It's the perfect way to discover your new favorite scent.",
+                    kit_button: "Create Your Kit",
+                    kit_modal_title: "Build Your Test Kit",
+                    kit_selection_counter: "Select at least 5 perfumes",
+                    kit_add_to_cart: "Add Kit to Cart",
+                    shop_title: "Our Collection",
+                    shop_subtitle: "Discover your signature scent from our curated collection of luxury perfumes.",
+                    filter_all: "All", filter_men: "For Men", filter_women: "For Women", filter_unisex: "Unisex",
+                    sort_default: "Sort By", sort_price_asc: "Price: Low to High", sort_price_desc: "Price: High to Low",
+                    about_title: "The Essence of Sylflora",
+                    about_intro: "This section provides insight into our brand and the variety within our collection. Explore the story behind our fragrances and see a visual breakdown of our perfume offerings, helping you understand the diversity and focus of our scents.",
+                    about_p1: "Welcome to Sylflora, where the art of perfumery meets the essence of nature and luxury. Our mission is to create unique, high-quality fragrances that tell a story and evoke powerful emotions. Each bottle is a masterpiece, crafted with passion and precision.",
+                    about_p2: "We believe that a scent is more than just a fragrance; it's a personal signature. That's why we source the finest ingredients from around the world to create our exclusive collection, offering a scent for every personality and occasion.",
+                    chart_title: "Our Collection by Category",
+                    contact_title: "Get In Touch",
+                    contact_subtitle: "We would love to hear from you. For inquiries, support, or feedback, please reach out.",
+                    form_name: "Name", form_email: "Email", form_message: "Message",
+                    form_name_placeholder: "Name", form_email_placeholder: "Email Address", form_message_placeholder: "Your Message",
+                    form_submit: "Send Message",
+                    contact_or: "Or",
+                    contact_facebook: "Message us on Facebook",
+                    modal_add_to_cart: "Add to Cart",
+                    modal_instant_buy: "Instant Buy",
+                    modal_longevity: "Longevity",
+                    modal_scent_type: "Scent Type",
+                    modal_fragrance_notes: "Fragrance Notes",
+                    modal_notes_top: "Top",
+                    modal_notes_middle: "Middle",
+                    modal_notes_base: "Base",
+                    price_from: "From BDT",
+                    price_tba: "Price TBA",
+                    cart_title: "Shopping Cart",
+                    cart_subtotal: "Subtotal",
+                    cart_checkout: "Checkout",
+                    cart_clear: "Clear Cart",
+                    cart_remove: "Remove",
+                    cart_empty: "Your cart is empty.",
+                    kit_item_title: "7ml Test Kit",
+                    add_success_title: "Successfully Added!",
+                    add_success_message: "The product has been added to your shopping cart.",
+                    continue_shopping: "Continue Shopping",
+                    go_to_cart: "Go to Cart",
+                    checkout_title: "Confirm Order",
+                    checkout_summary_title: "Order Summary",
+                    checkout_details_title: "Your Details",
+                    checkout_subtotal: "Subtotal:",
+                    checkout_delivery: "Delivery Charge:",
+                    checkout_total: "Total:",
+                    checkout_form_name: "Your Name",
+                    checkout_form_phone: "Your Mobile Number",
+                    checkout_form_address: "Your Full Address",
+                    checkout_delivery_location: "Delivery Location",
+                    checkout_inside_dhaka: "Inside Dhaka",
+                    checkout_outside_dhaka: "Outside Dhaka",
+                    checkout_payment_method: "Payment Method",
+                    checkout_cod: "Cash on Delivery",
+                    checkout_delivery_time: "Delivery Time: 1-3 days in Dhaka, 3-5 days outside Dhaka.",
+                    checkout_online_payment: "For Online Payment",
+                    checkout_online_instructions: 'Please contact us on our <a href="https://www.facebook.com/sylflora.official" target="_blank" class="text-blue-600 font-bold">Facebook Page</a>.',
+                    checkout_confirm_order: "Confirm Order (COD)",
+                    order_success_title: "Order Placed!",
+                    order_success_message: "Thank you. Your order has been received. We will contact you shortly."
+                },
+                bn: {
+                    title: "সিলফ্লোরা | লাক্সারি পারফিউম শপ",
+                    nav_shop: "শপ", nav_about: "আমাদের সম্পর্কে", nav_contact: "যোগাযোগ",
+                    nav_shop_mobile: "শপ", nav_about_mobile: "আমাদের সম্পর্কে", nav_contact_mobile: "যোগাযোগ",
+                    hero_subtitle: "লাক্সারি পারফিউম শপ",
+                    kit_title: "আপনার নিজের ৭মিলি টেস্ট কিট তৈরি করুন",
+                    kit_subtitle: "পুরো বোতল কেনার সিদ্ধান্ত নিতে পারছেন না? আপনার ব্যক্তিগত ৭মিলি নমুনার কিট তৈরি করতে আমাদের সংগ্রহ থেকে সর্বনিম্ন ৫টি পারফিউম নির্বাচন করুন। আপনার নতুন প্রিয় সুগন্ধ আবিষ্কার করার এটিই সেরা উপায়।",
+                    kit_button: "আপনার কিট তৈরি করুন",
+                    kit_modal_title: "আপনার টেস্ট কিট তৈরি করুন",
+                    kit_selection_counter: "কমপক্ষে ৫টি পারফিউম নির্বাচন করুন",
+                    kit_add_to_cart: "কিট কার্টে যোগ করুন",
+                    shop_title: "আমাদের সংগ্রহ",
+                    shop_subtitle: "আমাদের বিলাসবহুল পারফিউমের সংগ্রহ থেকে আপনার পছন্দের সুগন্ধি আবিষ্কার করুন।",
+                    filter_all: "সব", filter_men: "পুরুষদের জন্য", filter_women: "মহিলাদের জন্য", filter_unisex: "ইউনিসেক্স",
+                    sort_default: "সাজান", sort_price_asc: "মূল্য: কম থেকে বেশি", sort_price_desc: "মূল্য: বেশি থেকে কম",
+                    about_title: "সিলফ্লোরার সারমর্ম",
+                    about_intro: "এই বিভাগটি আমাদের ব্র্যান্ড এবং আমাদের সংগ্রহের বৈচিত্র্য সম্পর্কে অন্তর্দৃষ্টি প্রদান করে। আমাদের সুগন্ধির পেছনের গল্পটি অন্বেষণ করুন এবং আমাদের পারফিউম অফারগুলির একটি ভিজ্যুয়াল ব্রেকডাউন দেখুন, যা আপনাকে আমাদের সুগন্ধির বৈচিত্র্য এবং ফোকাস বুঝতে সহায়তা করে।",
+                    about_p1: "সিলফ্লোরাতে স্বাগতম, যেখানে পারফিউমারির শিল্প প্রকৃতি এবং বিলাসিতার সারাংশের সাথে মিলিত হয়। আমাদের লক্ষ্য হল অনন্য, উচ্চ-মানের সুগন্ধি তৈরি করা যা একটি গল্প বলে এবং শক্তিশালী আবেগ জাগিয়ে তোলে। প্রতিটি বোতল একটি মাস্টারপিস, আবেগ এবং নির্ভুলতার সাথে তৈরি।",
+                    about_p2: "আমরা বিশ্বাস করি যে একটি ঘ্রাণ কেবল একটি সুগন্ধির চেয়ে বেশি কিছু; এটি একটি ব্যক্তিগত স্বাক্ষর। এজন্যই আমরা আমাদের একচেটিয়া সংগ্রহ তৈরি করতে বিশ্বজুড়ে সেরা উপাদানগুলি সংগ্রহ করি, প্রতিটি ব্যক্তিত্ব এবং অনুষ্ঠানের জন্য একটি ঘ্রাণ সরবরাহ করি।",
+                    chart_title: "বিভাগ অনুসারে আমাদের সংগ্রহ",
+                    contact_title: "যোগাযোগ করুন",
+                    contact_subtitle: "আমরা আপনার কাছ থেকে শুনতে চাই। জিজ্ঞাসা, সমর্থন বা মতামতের জন্য, দয়া করে যোগাযোগ করুন।",
+                    form_name: "নাম", form_email: "ইমেইল", form_message: "বার্তা",
+                    form_name_placeholder: "আপনার নাম",
+                    form_message_placeholder: "আপনার বার্তা",
+                    form_submit: "বার্তা পাঠান",
+                    contact_or: "অথবা",
+                    contact_facebook: "ফেসবুকে মেসেজ দিন",
+                    modal_add_to_cart: "কার্টে যোগ করুন",
+                    modal_instant_buy: "এখনই কিনুন",
+                    modal_longevity: "স্থায়িত্ব",
+                    modal_scent_type: "ধরণ",
+                    modal_fragrance_notes: "সুগন্ধি নোট",
+                    modal_notes_top: "শীর্ষ",
+                    modal_notes_middle: "মধ্য",
+                    modal_notes_base: "বেস",
+                    price_from: "শুরু BDT",
+                    price_tba: "মূল্য TBA",
+                    cart_title: "শপিং কার্ট",
+                    cart_subtotal: "মোট",
+                    cart_checkout: "চেকআউট",
+                    cart_clear: "কার্ট খালি করুন",
+                    cart_remove: "সরান",
+                    cart_empty: "আপনার কার্ট খালি।",
+                    kit_item_title: "৭মিলি টেস্ট কিট",
+                    add_success_title: "সফলভাবে যোগ হয়েছে!",
+                    add_success_message: "পণ্যটি আপনার শপিং কার্টে যোগ করা হয়েছে।",
+                    continue_shopping: "শপিং চালিয়ে যান",
+                    go_to_cart: "কার্টে যান",
+                    checkout_title: "অর্ডার কনফার্ম করুন",
+                    checkout_summary_title: "অর্ডার সারাংশ",
+                    checkout_details_title: "আপনার তথ্য",
+                    checkout_subtotal: "মোট:",
+                    checkout_delivery: "ডেলিভারি চার্জ:",
+                    checkout_total: "সর্বমোট:",
+                    checkout_form_name: "আপনার নাম",
+                    checkout_form_phone: "আপনার মোবাইল নম্বর",
+                    checkout_form_address: "আপনার ঠিকানা",
+                    checkout_delivery_location: "ডেলিভারি এলাকা",
+                    checkout_inside_dhaka: "ঢাকার মধ্যে",
+                    checkout_outside_dhaka: "ঢাকার বাইরে",
+                    checkout_payment_method: "পেমেন্ট পদ্ধতি",
+                    checkout_cod: "ক্যাশ অন ডেলিভারি",
+                    checkout_delivery_time: "ডেলিভারি সময়: ঢাকা শহরে ১-৩ দিন, ঢাকার বাইরে ৩-৫ দিন।",
+                    checkout_online_payment: "অনলাইন পেমেন্টের জন্য",
+                    checkout_online_instructions: 'দয়া করে আমাদের <a href="https://www.facebook.com/sylflora.official" target="_blank" class="text-blue-600 font-bold">ফেসবুক পেজে</a> যোগাযোগ করুন।',
+                    checkout_confirm_order: "অর্ডার কনফার্ম করুন (COD)",
+                    order_success_title: "অর্ডার সম্পন্ন হয়েছে!",
+                    order_success_message: "ধন্যবাদ। আমরা আপনার অর্ডার পেয়েছি। শীঘ্রই আপনার সাথে যোগাযোগ করা হবে।"
+                }
+            };
+
+            let currentLang = 'bn';
+            let currentProducts = [...productData];
+            let cart = [];
+            let selectedKitItems = [];
+            let checkoutItems = [];
+
+            const productGrid = document.getElementById('product-grid');
+            const langSwitcher = document.getElementById('lang-switcher');
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const sortSelect = document.getElementById('sort-select');
+            
+            const productModal = document.getElementById('product-modal');
+            const closeProductModalBtn = document.getElementById('close-product-modal');
+            const productModalContent = document.getElementById('product-modal-content');
+
+            const kitBuilderModal = document.getElementById('kit-builder-modal');
+            const openKitBuilderBtn = document.getElementById('open-kit-builder');
+            const closeKitBuilderBtn = document.getElementById('close-kit-modal');
+            const kitPerfumeList = document.getElementById('kit-perfume-list');
+            const kitCounter = document.getElementById('kit-counter');
+            const addKitToCartBtn = document.getElementById('add-kit-to-cart-btn');
+
+            const cartModal = document.getElementById('cart-modal');
+            const cartPanel = document.getElementById('cart-panel');
+            const cartBg = document.getElementById('cart-bg');
+            const openCartBtn = document.getElementById('cart-button');
+            const closeCartBtn = document.getElementById('close-cart-btn');
+            const cartItemsContainer = document.getElementById('cart-items');
+            const cartSubtotalEl = document.getElementById('cart-subtotal');
+            const cartBadge = document.getElementById('cart-badge');
+            const checkoutBtn = document.getElementById('checkout-btn');
+            const clearCartBtn = document.getElementById('clear-cart-btn');
+            
+            const checkoutModal = document.getElementById('checkout-modal');
+            const closeCheckoutModalBtn = document.getElementById('close-checkout-modal');
+            const checkoutForm = document.getElementById('checkout-form');
+            const facebookMessageForm = document.getElementById('facebook-message-form');
+
+            const addToCartModal = document.getElementById('add-to-cart-modal');
+            const continueShoppingBtn = document.getElementById('continue-shopping-btn');
+            const goToCartBtn = document.getElementById('go-to-cart-btn');
+            let confirmationModalTimeout;
+
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            const switchLanguage = (lang) => {
+                currentLang = lang;
+                document.documentElement.lang = lang;
+                
+                if (lang === 'bn') {
+                    document.body.classList.remove('font-english');
+                    document.body.classList.add('font-bangla');
+                    langSwitcher.textContent = 'English';
+                } else {
+                    document.body.classList.remove('font-bangla');
+                    document.body.classList.add('font-english');
+                    langSwitcher.textContent = 'বাংলা';
+                }
+
+                document.querySelectorAll('[data-lang-key]').forEach(el => {
+                    const key = el.getAttribute('data-lang-key');
+                    if (langData[lang][key]) {
+                        if (key === 'checkout_online_instructions') {
+                            el.innerHTML = langData[lang][key];
+                        } else {
+                            el.textContent = langData[lang][key];
+                        }
+                    }
+                });
+                
+                document.querySelectorAll('[data-lang-placeholder-key]').forEach(el => {
+                    const key = el.getAttribute('data-lang-placeholder-key');
+                    if (langData[lang][key]) {
+                        el.placeholder = langData[lang][key];
+                    }
+                });
+
+                renderProducts(currentProducts);
+                renderCart();
+                renderChart();
+                updateKitCounter();
+            };
+
+            const formatPrice = (price) => {
+                if (typeof price === 'number') {
+                    return `BDT ${price.toLocaleString('en-IN')}`;
+                }
+                return currentLang === 'en' ? "Coming Soon" : "শীঘ্রই আসছে";
+            };
+
+            const getBasePrice = (product) => {
+                 const prices = Object.values(product.prices).filter(p => typeof p === 'number' && p > 90);
+                 return prices.length > 0 ? Math.min(...prices) : null;
+            }
+
+            const renderProducts = (products) => {
+                productGrid.innerHTML = '';
+                products.forEach(product => {
+                    const basePrice = getBasePrice(product);
+                    const card = document.createElement('div');
+                    card.className = 'bg-white rounded-lg shadow-md overflow-hidden transform hover:-translate-y-2 transition-transform duration-300 cursor-pointer';
+                    card.dataset.productId = product.id;
+
+                    const priceText = basePrice !== null 
+                        ? `<span class="font-bold">${langData[currentLang].price_from} ${basePrice.toLocaleString('en-IN')}</span>` 
+                        : `<span class="font-bold">${langData[currentLang].price_tba}</span>`;
+                    
+                    card.innerHTML = `
+                        <img src="${product.images[0]}" alt="${product.name}" class="w-full h-56 object-cover">
+                        <div class="p-4">
+                            <h3 class="text-xl font-semibold text-sylflora-green truncate">${product.name}</h3>
+                            <p class="text-gray-600 mt-2 h-12 overflow-hidden">${product.desc}</p>
+                            <p class="text-sylflora-green mt-4 text-lg">${priceText}</p>
+                        </div>
+                    `;
+                    card.addEventListener('click', () => openProductModal(product.id));
+                    productGrid.appendChild(card);
+                });
+            };
+
+            const openProductModal = (productId) => {
+                const product = productData.find(p => p.id === productId);
+                if (!product) return;
+                
+                productModalContent.innerHTML = `
+                    <div>
+                        <img id="main-modal-img" src="${product.images[0]}" alt="${product.name}" class="w-full h-auto object-cover rounded-lg mb-4">
+                        <div id="thumbnail-gallery" class="flex gap-2 justify-center">
+                            ${product.images.map((img, index) => `<img src="${img}" alt="thumbnail ${index+1}" class="w-20 h-20 object-cover rounded-md cursor-pointer border-2 ${index === 0 ? 'border-sylflora-gold' : 'border-transparent'}">`).join('')}
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <h2 class="text-3xl font-bold text-sylflora-green">${product.name}</h2>
+                        <p class="mt-2 text-gray-600">${product.desc}</p>
+                        
+                        <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
+                            <div><strong data-lang-key="modal_longevity"></strong>: ${product.longevity}</div>
+                            <div><strong data-lang-key="modal_scent_type"></strong>: ${product.scentType}</div>
+                        </div>
+
+                        <div class="mt-4">
+                            <h3 class="text-lg font-semibold text-sylflora-green" data-lang-key="modal_fragrance_notes"></h3>
+                            <ul class="text-sm space-y-1 mt-2">
+                                <li><strong data-lang-key="modal_notes_top"></strong>: ${product.notes.top}</li>
+                                <li><strong data-lang-key="modal_notes_middle"></strong>: ${product.notes.middle}</li>
+                                <li><strong data-lang-key="modal_notes_base"></strong>: ${product.notes.base}</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h3 class="text-lg font-semibold text-sylflora-green" data-lang-key="modal_size_title">Select Size</h3>
+                            <div class="size-selector flex flex-wrap gap-3 mt-2"></div>
+                        </div>
+                        
+                        <div class="mt-4 flex items-baseline gap-4">
+                            <span class="modal-price text-4xl font-bold text-sylflora-green">BDT 0</span>
+                        </div>
+
+                        <div class="mt-6 grid grid-cols-2 gap-4">
+                            <button class="add-to-cart-btn w-full h-16 flex items-center justify-center text-center border border-sylflora-gold text-sylflora-gold font-bold px-2 rounded-full text-lg hover:bg-sylflora-gold hover:text-sylflora-green transition duration-300" data-lang-key="modal_add_to_cart">Add to Cart</button>
+                            <button class="instant-buy-btn w-full h-16 flex items-center justify-center text-center bg-sylflora-gold text-sylflora-green font-bold px-2 rounded-full text-lg hover:opacity-90 transition duration-300" data-lang-key="modal_instant_buy">Instant Buy</button>
+                        </div>
+                    </div>
+                `;
+
+                const sizeSelector = productModalContent.querySelector('.size-selector');
+                let firstAvailableSize = null;
+
+                Object.entries(product.prices).forEach(([size, price]) => {
+                    if(size === '7ml') return;
+
+                    const sizeButton = document.createElement('button');
+                    sizeButton.className = 'size-btn border border-gray-300 py-2 px-4 rounded-md';
+                    sizeButton.textContent = size;
+                    sizeButton.dataset.price = price;
+                    sizeButton.dataset.size = size;
+                    
+                    if (!firstAvailableSize && typeof price === 'number') {
+                        firstAvailableSize = sizeButton;
+                    }
+
+                    sizeButton.addEventListener('click', (e) => {
+                        productModalContent.querySelectorAll('.size-btn').forEach(btn => btn.classList.remove('bg-sylflora-green', 'text-white'));
+                        e.target.classList.add('bg-sylflora-green', 'text-white');
+                        productModalContent.querySelector('.modal-price').textContent = formatPrice(price);
+                    });
+                    sizeSelector.appendChild(sizeButton);
+                });
+                
+                if(firstAvailableSize){
+                    firstAvailableSize.click();
+                } else {
+                     productModalContent.querySelector('.modal-price').textContent = langData[currentLang].price_tba;
+                }
+                
+                productModalContent.querySelector('#thumbnail-gallery').addEventListener('click', (e) => {
+                    if (e.target.tagName === 'IMG') {
+                        document.getElementById('main-modal-img').src = e.target.src;
+                        productModalContent.querySelectorAll('#thumbnail-gallery img').forEach(img => img.classList.remove('border-sylflora-gold'));
+                        e.target.classList.add('border-sylflora-gold');
+                    }
+                });
+
+                productModalContent.querySelector('.add-to-cart-btn').addEventListener('click', () => {
+                    const selectedSizeEl = sizeSelector.querySelector('.bg-sylflora-green');
+                    if(selectedSizeEl) {
+                        const size = selectedSizeEl.dataset.size;
+                        const price = parseFloat(selectedSizeEl.dataset.price);
+                        addToCart(product, size, price);
+                        productModal.classList.add('hidden');
+                        productModal.classList.remove('flex');
+                    }
+                });
+
+                productModalContent.querySelector('.instant-buy-btn').addEventListener('click', () => {
+                    const selectedSizeEl = sizeSelector.querySelector('.bg-sylflora-green');
+                    if(selectedSizeEl) {
+                        const size = selectedSizeEl.dataset.size;
+                        const price = parseFloat(selectedSizeEl.dataset.price);
+                        const item = { ...product, size, price, quantity: 1 };
+                        openCheckoutModal([item]);
+                        productModal.classList.add('hidden');
+                        productModal.classList.remove('flex');
+                    }
+                });
+
+                switchLanguage(currentLang);
+                productModal.classList.remove('hidden');
+                productModal.classList.add('flex');
+            };
+
+            const handleFilter = (filter) => {
+                let filteredProducts = productData;
+                if (filter !== 'all') {
+                    filteredProducts = productData.filter(p => p.gender === filter || (filter === 'Female' && p.gender === 'Women'));
+                }
+                currentProducts = [...filteredProducts];
+                applySort(sortSelect.value);
+            };
+
+            const applySort = (sortValue) => {
+                let sortedProducts = [...currentProducts];
+                if (sortValue === 'price-asc') {
+                    sortedProducts.sort((a, b) => (getBasePrice(a) || Infinity) - (getBasePrice(b) || Infinity));
+                } else if (sortValue === 'price-desc') {
+                    sortedProducts.sort((a, b) => (getBasePrice(b) || -Infinity) - (getBasePrice(a) || -Infinity));
+                }
+                renderProducts(sortedProducts);
+            };
+
+            const openKitBuilder = () => {
+                selectedKitItems = [];
+                kitPerfumeList.innerHTML = '';
+                productData.forEach(p => {
+                    const item = document.createElement('div');
+                    item.className = 'flex items-center justify-between p-3 rounded-lg hover:bg-gray-100';
+                    item.innerHTML = `
+                        <label for="kit-item-${p.id}" class="flex items-center cursor-pointer w-full">
+                            <img src="${p.images[0]}" class="w-12 h-12 rounded-md object-cover mr-4">
+                            <span class="font-semibold">${p.name}</span>
+                        </label>
+                        <div class="flex items-center">
+                            <span class="font-semibold text-gray-600 mr-4">${formatPrice(p.prices['7ml'])}</span>
+                            <input type="checkbox" id="kit-item-${p.id}" data-id="${p.id}" class="kit-checkbox h-6 w-6 rounded text-sylflora-green focus:ring-sylflora-gold cursor-pointer">
+                        </div>
+                    `;
+                    kitPerfumeList.appendChild(item);
+                });
+                updateKitCounter();
+                kitBuilderModal.classList.remove('hidden');
+                kitBuilderModal.classList.add('flex');
+            };
+
+            const updateKitCounter = () => {
+                const count = selectedKitItems.length;
+                kitCounter.textContent = `${count} ${currentLang === 'en' ? 'selected' : 'নির্বাচিত'}`;
+                if (count >= 5) {
+                    addKitToCartBtn.disabled = false;
+                    kitCounter.classList.add('sylflora-gold');
+                } else {
+                    addKitToCartBtn.disabled = true;
+                    kitCounter.classList.remove('sylflora-gold');
+                }
+            };
+            
+            const showAddToCartConfirmation = () => {
+                clearTimeout(confirmationModalTimeout);
+                addToCartModal.classList.remove('hidden');
+                addToCartModal.classList.add('flex');
+
+                confirmationModalTimeout = setTimeout(() => {
+                    hideAddToCartConfirmation();
+                }, 4000); // Auto-hide after 4 seconds
+            };
+            
+            const hideAddToCartConfirmation = () => {
+                clearTimeout(confirmationModalTimeout);
+                addToCartModal.classList.add('hidden');
+                addToCartModal.classList.remove('flex');
+            };
+
+            const addToCart = (product, size, price) => {
+                const cartItemId = product.isKit ? product.id : `${product.id}-${size}`;
+                const existingItem = cart.find(item => item.cartItemId === cartItemId);
+
+                if (existingItem) {
+                    existingItem.quantity++;
+                } else {
+                    const cartItem = {
+                        cartItemId: cartItemId,
+                        id: product.id,
+                        name: product.name,
+                        size: size,
+                        price: price,
+                        quantity: 1,
+                        isKit: product.isKit || false,
+                        items: product.items || [],
+                        image: product.images ? product.images[0] : "https://placehold.co/200x200/023020/F5F5F5?text=Kit"
+                    };
+                    cart.push(cartItem);
+                }
+                updateCart();
+                showAddToCartConfirmation();
+            };
+
+            const addKitToCart = () => {
+                const kitPrice = selectedKitItems.reduce((total, id) => {
+                    const product = productData.find(p => p.id === id);
+                    return total + (product.prices['7ml'] || 0);
+                }, 0);
+
+                const kitItem = {
+                    id: `kit-${Date.now()}`,
+                    name: `${langData[currentLang].kit_item_title} (${selectedKitItems.length} ${currentLang === 'en' ? 'Samples' : 'নমুনা'})`,
+                    size: `7ml x ${selectedKitItems.length}`,
+                    price: kitPrice,
+                    quantity: 1,
+                    isKit: true,
+                    items: selectedKitItems.map(id => productData.find(p => p.id === id).name),
+                    images: ["https://placehold.co/200x200/023020/F5F5F5?text=Kit"]
+                };
+                addToCart(kitItem, kitItem.size, kitItem.price);
+                kitBuilderModal.classList.add('hidden');
+                kitBuilderModal.classList.remove('flex');
+            };
+
+            const updateCart = () => {
+                renderCart();
+                updateCartIcon();
+            };
+
+            const renderCart = () => {
+                if (cart.length === 0) {
+                    cartItemsContainer.innerHTML = `<p class="text-center text-gray-500 py-8" data-lang-key="cart_empty">${langData[currentLang].cart_empty}</p>`;
+                    cartSubtotalEl.textContent = formatPrice(0);
+                    checkoutBtn.disabled = true;
+                    clearCartBtn.classList.add('hidden');
+                    return;
+                }
+                checkoutBtn.disabled = false;
+                clearCartBtn.classList.remove('hidden');
+                cartItemsContainer.innerHTML = '';
+                let subtotal = 0;
+                cart.forEach(item => {
+                    subtotal += item.price * item.quantity;
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'py-4 flex';
+                    
+                    let itemDetails = '';
+                    if (item.isKit) {
+                        itemDetails = `<ul class="text-xs text-gray-500 pl-4 list-disc">${item.items.map(name => `<li>${name}</li>`).join('')}</ul>`;
+                    }
+
+                    itemEl.innerHTML = `
+                        <div class="flex-shrink-0 w-24 h-24 border border-gray-200 rounded-md overflow-hidden">
+                            <img src="${item.image}" alt="${item.name}" class="w-full h-full object-center object-cover">
+                        </div>
+                        <div class="ml-4 flex-1 flex flex-col">
+                            <div>
+                                <div class="flex justify-between text-base font-medium text-gray-900">
+                                    <h3>${item.name}</h3>
+                                    <p class="ml-4">${formatPrice(item.price * item.quantity)}</p>
+                                </div>
+                                <p class="mt-1 text-sm text-gray-500">${item.size}</p>
+                                ${itemDetails}
+                            </div>
+                            <div class="flex-1 flex items-end justify-between text-sm">
+                                <div class="flex items-center border rounded">
+                                    <button class="quantity-btn px-2 py-1" data-cart-item-id="${item.cartItemId}" data-change="-1">-</button>
+                                    <span class="px-3">${item.quantity}</span>
+                                    <button class="quantity-btn px-2 py-1" data-cart-item-id="${item.cartItemId}" data-change="1">+</button>
+                                </div>
+                                <div class="flex">
+                                    <button type="button" class="remove-item-btn font-medium text-red-600 hover:text-red-500" data-cart-item-id="${item.cartItemId}" data-lang-key="cart_remove">${langData[currentLang].cart_remove}</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    cartItemsContainer.appendChild(itemEl);
+                });
+                cartSubtotalEl.textContent = formatPrice(subtotal);
+            };
+            
+            const handleCartActions = (e) => {
+                const target = e.target;
+                if (target.classList.contains('quantity-btn')) {
+                    const cartItemId = target.dataset.cartItemId;
+                    const change = parseInt(target.dataset.change);
+                    updateQuantity(cartItemId, change);
+                }
+                if (target.classList.contains('remove-item-btn')) {
+                    const cartItemId = target.dataset.cartItemId;
+                    removeFromCart(cartItemId);
+                }
+            };
+
+            const updateQuantity = (cartItemId, change) => {
+                const item = cart.find(i => i.cartItemId === cartItemId);
+                if (item) {
+                    if (item.isKit) return; // Quantity change disabled for kits
+                    item.quantity += change;
+                    if (item.quantity <= 0) {
+                        removeFromCart(cartItemId);
+                    } else {
+                        updateCart();
+                    }
+                }
+            };
+            
+            const removeFromCart = (cartItemId) => {
+                cart = cart.filter(i => i.cartItemId !== cartItemId);
+                updateCart();
+            };
+            
+            const clearCart = () => {
+                cart = [];
+                updateCart();
+            };
+
+            const updateCartIcon = () => {
+                const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+                if (totalItems > 0) {
+                    cartBadge.textContent = totalItems;
+                    cartBadge.classList.remove('hidden');
+                } else {
+                    cartBadge.classList.add('hidden');
+                }
+            };
+
+            const toggleCart = () => {
+                const isHidden = cartModal.classList.contains('hidden');
+                if (isHidden) {
+                    cartModal.classList.remove('hidden');
+                    setTimeout(() => {
+                        cartPanel.classList.remove('cart-slide-out');
+                        cartPanel.classList.add('cart-slide-in');
+                    }, 10);
+                } else {
+                    cartPanel.classList.remove('cart-slide-in');
+                    cartPanel.classList.add('cart-slide-out');
+                    setTimeout(() => {
+                        cartModal.classList.add('hidden');
+                    }, 300);
+                }
+            };
+
+            const openCheckoutModal = (items) => {
+                checkoutItems = items;
+                const itemListEl = document.getElementById('checkout-item-list');
+                itemListEl.innerHTML = '';
+                let subtotal = 0;
+
+                checkoutItems.forEach(item => {
+                    subtotal += item.price * item.quantity;
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'flex justify-between text-sm';
+                    itemEl.innerHTML = `
+                        <span>${item.name} (${item.size}) x ${item.quantity}</span>
+                        <span>${formatPrice(item.price * item.quantity)}</span>
+                    `;
+                    itemListEl.appendChild(itemEl);
+                });
+                
+                updateCheckoutTotals(subtotal);
+                checkoutModal.classList.remove('hidden');
+                checkoutModal.classList.add('flex');
+            };
+            
+            const updateCheckoutTotals = (subtotal) => {
+                const deliveryLocation = checkoutForm.querySelector('input[name="delivery_location"]:checked').value;
+                const deliveryCharge = deliveryLocation === 'inside' ? 80 : 130;
+                const total = subtotal + deliveryCharge;
+
+                document.getElementById('checkout-subtotal-amount').textContent = formatPrice(subtotal);
+                document.getElementById('checkout-delivery-amount').textContent = formatPrice(deliveryCharge);
+                document.getElementById('checkout-total-amount').textContent = formatPrice(total);
+            };
+
+            let genderChartInstance = null;
+            const renderChart = () => {
+                if(!document.getElementById('genderChart')) return;
+                const ctx = document.getElementById('genderChart').getContext('2d');
+                const counts = productData.reduce((acc, p) => {
+                    let gender = p.gender;
+                    if (gender === 'Women') gender = 'Female';
+                    acc[gender] = (acc[gender] || 0) + 1;
+                    return acc;
+                }, {});
+                
+                const labels = {
+                    'Male': currentLang === 'en' ? 'Men' : 'পুরুষ',
+                    'Female': currentLang === 'en' ? 'Women' : 'মহিলা',
+                    'Unisex': currentLang === 'en' ? 'Unisex' : 'ইউনিসেক্স'
+                };
+
+                if (genderChartInstance) {
+                    genderChartInstance.destroy();
+                }
+
+                genderChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(counts).map(key => labels[key] || key),
+                        datasets: [{
+                            label: currentLang === 'en' ? '# of Perfumes' : 'পারফিউমের সংখ্যা',
+                            data: Object.values(counts),
+                            backgroundColor: ['rgba(2, 48, 32, 0.7)', 'rgba(255, 215, 0, 0.7)', 'rgba(128, 128, 128, 0.7)'],
+                            borderColor: ['rgba(2, 48, 32, 1)', 'rgba(255, 215, 0, 1)', 'rgba(128, 128, 128, 1)'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { beginAtZero: true, ticks: { font: { family: 'Poppins' } } },
+                            y: { ticks: { font: { family: currentLang === 'en' ? 'Poppins' : 'Hind Siliguri', size: 14 } } }
+                        }
+                    }
+                });
+            };
+
+            // Event Listeners
+            langSwitcher.addEventListener('click', () => switchLanguage(currentLang === 'en' ? 'bn' : 'en'));
+            closeProductModalBtn.addEventListener('click', () => { productModal.classList.add('hidden'); productModal.classList.remove('flex'); });
+            productModal.addEventListener('click', (e) => { if (e.target === productModal) { productModal.classList.add('hidden'); productModal.classList.remove('flex'); } });
+            filterButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    filterButtons.forEach(btn => { btn.classList.remove('bg-sylflora-green', 'text-sylflora-offwhite'); btn.classList.add('border', 'border-sylflora-green'); });
+                    e.target.classList.add('bg-sylflora-green', 'text-sylflora-offwhite'); e.target.classList.remove('border', 'border-sylflora-green');
+                    handleFilter(e.target.dataset.filter);
+                });
+            });
+            sortSelect.addEventListener('change', (e) => applySort(e.target.value));
+            mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+            document.querySelectorAll('#mobile-menu a').forEach(link => link.addEventListener('click', () => mobileMenu.classList.add('hidden')));
+
+            openKitBuilderBtn.addEventListener('click', openKitBuilder);
+            closeKitBuilderBtn.addEventListener('click', () => { kitBuilderModal.classList.add('hidden'); kitBuilderModal.classList.remove('flex'); });
+            kitPerfumeList.addEventListener('change', (e) => {
+                if (e.target.classList.contains('kit-checkbox')) {
+                    const id = parseInt(e.target.dataset.id);
+                    if (e.target.checked) { selectedKitItems.push(id); } else { selectedKitItems = selectedKitItems.filter(itemId => itemId !== id); }
+                    updateKitCounter();
+                }
+            });
+            addKitToCartBtn.addEventListener('click', addKitToCart);
+
+            openCartBtn.addEventListener('click', toggleCart);
+            closeCartBtn.addEventListener('click', toggleCart);
+            cartBg.addEventListener('click', toggleCart);
+            cartItemsContainer.addEventListener('click', handleCartActions);
+            clearCartBtn.addEventListener('click', clearCart);
+
+            checkoutBtn.addEventListener('click', () => {
+                if(cart.length > 0) {
+                    openCheckoutModal(cart);
+                    toggleCart();
+                }
+            });
+            
+            closeCheckoutModalBtn.addEventListener('click', () => { checkoutModal.classList.add('hidden'); checkoutModal.classList.remove('flex'); });
+            checkoutModal.addEventListener('click', (e) => { if (e.target === checkoutModal) { checkoutModal.classList.add('hidden'); checkoutModal.classList.remove('flex'); } });
+            
+            checkoutForm.addEventListener('change', (e) => {
+                if (e.target.name === 'delivery_location') {
+                    const subtotal = checkoutItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+                    updateCheckoutTotals(subtotal);
+                }
+            });
+
+            checkoutForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                // In a real app, you'd send this data to a server.
+                // For now, we'll just show a confirmation.
+                checkoutModal.classList.add('hidden');
+                checkoutModal.classList.remove('flex');
+                alert(`${langData[currentLang].order_success_title}\n${langData[currentLang].order_success_message}`);
+                cart = []; // Clear cart after order
+                updateCart();
+            });
+
+            facebookMessageForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('contact-name').value;
+                const message = document.getElementById('contact-message').value;
+                let fullMessage = message;
+                if (name) {
+                    fullMessage = `Name: ${name}\n\nMessage: ${message}`;
+                }
+                const fbLink = `https://www.facebook.com/messages/t/sylflora.official?text=${encodeURIComponent(fullMessage)}`;
+                window.open(fbLink, '_blank');
+            });
+
+            continueShoppingBtn.addEventListener('click', hideAddToCartConfirmation);
+            goToCartBtn.addEventListener('click', () => {
+                hideAddToCartConfirmation();
+                toggleCart();
+            });
+            addToCartModal.addEventListener('click', (e) => {
+                if (e.target === addToCartModal) {
+                    hideAddToCartConfirmation();
+                }
+            });
+
+            switchLanguage('bn');
+        });
+    </script>
+</body>
+</html>
